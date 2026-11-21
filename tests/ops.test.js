@@ -10,6 +10,7 @@ import { DESTINATIONS_CLIENT } from '../ops/web/destinations.js';
 import { DICT } from '../ops/web/i18n.js';
 
 const JPEG = 'data:image/jpeg;base64,' + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(200, 1)]).toString('base64');
+const fast = (app, scale = 10) => { app.store.clock.scale = scale; return app; };
 const run = (app, seconds) => { for (let i = 0; i < seconds; i++) app.tick(1); };
 
 test('geo: distance, movement and k-means partition', () => {
@@ -22,7 +23,7 @@ test('geo: distance, movement and k-means partition', () => {
 });
 
 test('fleet: trucks move, never exceed capacity, never share a target bin, keep fills in range', () => {
-  const app = createApp({ persist: false });
+  const app = fast(createApp({ persist: false }));
   const start = app.store.publicTrucks().map(t => [t.lat, t.lon]);
   let moved = 0;
   for (let s = 0; s < 400; s++) {
@@ -51,7 +52,7 @@ test('store: GPS validation and report snapping', () => {
 });
 
 test('reports: assign -> collected, breakdown returns them to the queue', () => {
-  const app = createApp({ persist: false }), { store, fleet } = app;
+  const app = fast(createApp({ persist: false })), { store, fleet } = app;
   const b = store.bins.find(x => x.kind === 'b'), r = store.addReport({ lat: b.lat, lon: b.lon });
   const truck = fleet.nearestTruck(r.lat, r.lon); assert.ok(truck);
   store.assignReport(r.id, truck.id); assert.equal(store.getReport(r.id).status, 'assigned');
@@ -65,8 +66,22 @@ test('reports: assign -> collected, breakdown returns them to the queue', () => 
   app.server.close();
 });
 
+test('roads: routes follow directed streets, snap is close, real-time speeds are realistic', () => {
+  const app = createApp({ persist: false }), { graph, fleet, store } = app;
+  const a = graph.nearestNode({ lat: 37.9755, lon: 23.7348 }).node, b = graph.nearestNode({ lat: 38.0123, lon: 23.7655 }).node;
+  const r = graph.route(a, b); assert.ok(r && r.lengthM > 5000 && r.lengthM < 12000, `route length ${r?.lengthM}`);
+  for (let k = 1; k < r.nodes.length; k++) assert.ok(graph.adj[r.nodes[k - 1]].some(e => e[0] === r.nodes[k]), 'route uses a non-existent (or wrong-way) edge');
+  assert.ok(r.seconds / 60 > 8 && r.seconds / 60 < 40, `trip ${(r.seconds / 60).toFixed(1)} min`);
+  const far = store.bins.filter(x => graph.nearestNode(x).dist > 150).length; assert.ok(far / store.bins.length < 0.05, `${far} bins are far from any road`);
+  let prev = store.publicTrucks(), maxStep = 0;
+  for (let s = 0; s < 120; s++) { app.tick(1); const cur = store.publicTrucks(); cur.forEach((t, i) => { maxStep = Math.max(maxStep, distance(t, prev[i])); }); prev = cur; }
+  assert.ok(maxStep <= 14.5, `a truck moved ${maxStep.toFixed(1)} m in one real second at 1x`);
+  assert.ok(fleet.trucks.some(t => t.state === 'route'), 'somebody should be driving');
+  app.server.close();
+});
+
 test('plants: mass balance and destinations add up', () => {
-  const app = createApp({ persist: false }); run(app, 60);
+  const app = fast(createApp({ persist: false })); run(app, 60);
   for (const p of app.plants.summary()) {
     const mats = Object.values(p.materials).reduce((a, b) => a + b, 0);
     assert.ok(p.sortedKg > 0);
@@ -92,6 +107,8 @@ test('HTTP API: state, GPS, reports, limits, static files', async () => {
   const post = (u, body) => j(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
   const st = await j('/api/state'); assert.equal(st.status, 200); assert.equal(st.body.trucks.length, 10); assert.ok(st.body.kpi.bins === 1943);
+  assert.equal((await post('/api/speed', { scale: 5 })).body.scale, 5); assert.equal((await post('/api/speed', { scale: 500 })).status, 400);
+  const tid = st.body.trucks[0].id; assert.ok(Array.isArray((await j(`/api/trucks/${tid}/route`)).body));
   assert.equal((await post('/api/gps', { truckId: 'EXT-9', lat: 37.97, lon: 23.72 })).body.accepted, 1);
   assert.equal((await post('/api/gps', [{ truckId: 'EXT-9', lat: 999, lon: 0 }])).status, 400);
 

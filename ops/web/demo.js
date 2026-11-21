@@ -14,13 +14,21 @@ function demoPhoto() {
   return c.toDataURL('image/jpeg', 0.7);
 }
 
+/** A litter bin 400-700 m (as the crow flies) from some working general truck, so the demo trip is short but still follows streets. */
+function binNearATruck(bins, trucks, skip = new Set()) {
+  const km = (a, b) => Math.hypot((a.lat - b[1]) * 111320, (a.lon - b[2]) * 88000);
+  const cands = [];
+  for (const tr of trucks.filter(x => x.type === 'general' && x.status !== 'breakdown'))
+    for (const b of bins) if (b[3] === 'b' && !skip.has(b[0])) { const d = km(tr, b); if (d > 400 && d < 700 && Math.abs(b[1] - 37.985) < 0.03) cands.push(b); }
+  return cands[Math.floor(cands.length / 2)] ?? bins[0];
+}
+
 export async function runDemo({ view, state, post, selectTab, caption }) {
   const say = async (key, ms) => { caption(t(key)); await sleep(ms); };
+  const before = document.querySelector('#speed').value; await post('/api/speed', { scale: 5 });   // real time is too slow for a 90 s demo
   view.flyTo([37.985, 23.735], 14); await say('d1', 4500);
-  // pick a general bin near the centre that is not already full
   const bins = await fetch('/api/bins').then(r => r.json());
-  const c = { lat: 37.985, lon: 23.735 };
-  const bin = bins.filter(b => b[3] === 'b').sort((a, b) => Math.hypot(a[1] - c.lat, a[2] - c.lon) - Math.hypot(b[1] - c.lat, b[2] - c.lon))[8];
+  const bin = binNearATruck(bins, state.trucks);
   selectTab('reports'); view.flyTo([bin[1], bin[2]], 16);
   const r = await post('/api/reports', { lat: bin[1], lon: bin[2], photo: demoPhoto(), note: 'demo' });
   await say('d2', 4500);
@@ -28,15 +36,15 @@ export async function runDemo({ view, state, post, selectTab, caption }) {
   const truck = () => state.trucks.find(x => x.id === state.reports.get(r.id)?.assignedTruck);
   if (truck()) view.flyTo([truck().lat, truck().lon], 15);
   caption(t('d4'));
-  for (let i = 0; i < 40 && state.reports.get(r.id)?.status !== 'collected'; i++) { if (truck()) view.map.panTo([truck().lat, truck().lon]); await sleep(500); }
+  for (let i = 0; i < 90 && state.reports.get(r.id)?.status !== 'collected'; i++) { if (truck()) view.map.panTo([truck().lat, truck().lon]); await sleep(500); }
   await sleep(1500);
   // second report, then a breakdown of the assigned truck: it is reassigned
-  const bin2 = bins.filter(b => b[3] === 'b')[40];
+  const bin2 = binNearATruck(bins, state.trucks, new Set([bin[0]]));
   const r2 = await post('/api/reports', { lat: bin2[1], lon: bin2[2], photo: demoPhoto(), note: 'demo' });
   const a = await post(`/api/reports/${r2.id}/assign`); view.flyTo([bin2[1], bin2[2]], 15); await sleep(2500);
   await post(`/api/trucks/${a.assignedTruck}/breakdown`); await say('d5', 3500);
   await post(`/api/reports/${r2.id}/assign`); await sleep(2500);
   selectTab('plants'); view.flyTo([37.985, 23.735], 13); await say('d6', 7000);
   await say('d7', 6000);
-  caption(null);
+  caption(null); await post('/api/speed', { scale: Number(before) });
 }

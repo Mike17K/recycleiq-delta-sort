@@ -56,5 +56,5 @@ node --test tests/   # includes tests/ops.test.js
 - `ops/server/`: `store.js` (state, reports, KPIs), `fleet-sim.js` (trucks), `plant-sim.js` (runs the headless sorting simulation from `src/core`), `index.js` (REST + Server-Sent Events + static files).
 - `ops/web/`: dashboard (`index.html`, `app.js`, `map.js`, `panels.js`, `sankey.js`, `demo.js`) and portal (`report.html`, `report.js`).
 - Real GPS units: `POST /api/gps` with `{truckId, lat, lon, speed, heading, ts, status?, loadKg?}` (one message or an array). The simulator uses the same path.
-- Time is sped up for the demo (`ops/server/config.js`: trucks x8, bin fill x12, sorters x10). Everything is simulated; bins come from OpenStreetMap (ODbL).
+- Trucks drive on the real street network (`ops/data/roads.json`, built from OSM by `tools/athens-bins/extract_roads.py`; one-way streets respected, A* by travel time, 11-50 km/h by road class) in real time by default. The Speed selector (1x/2x/5x/10x) scales every clock; the Demo button runs at 5x. Everything is simulated; bins and roads come from OpenStreetMap (ODbL).
 - Phone geolocation needs HTTPS (or localhost) on a real device; otherwise the portal falls back to tapping the map.

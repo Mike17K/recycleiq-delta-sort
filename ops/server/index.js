@@ -7,6 +7,7 @@ import { CONFIG, SITES } from './config.js';
 import { Store } from './store.js';
 import { FleetSim } from './fleet-sim.js';
 import { PlantSim } from './plant-sim.js';
+import { RoadGraph } from './router.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -14,19 +15,21 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 export function createApp({ dataDir = path.join(ROOT, 'data'), persist = true } = {}) {
   const binRows = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/bins.json'), 'utf8'));
   const store = new Store({ binRows, sites: SITES, snapshotFile: persist ? path.join(dataDir, 'state.json') : null });
-  const fleet = new FleetSim(store), plants = new PlantSim(SITES);
+  const graph = RoadGraph.load(path.join(ROOT, 'data/roads.json'));
+  const fleet = new FleetSim(store, { graph }), plants = new PlantSim(SITES);
   const clients = new Set();
   let plantSummary = plants.summary();
 
   const send = (res, event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const broadcast = (event, data) => clients.forEach(c => send(c, event, data));
-  const live = () => ({ trucks: store.publicTrucks(), kpi: store.kpi(plantSummary), plants: plantSummary, sites: SITES, t: Date.now() });
+  const live = () => ({ scale: store.clock.scale, trucks: store.publicTrucks(), kpi: store.kpi(plantSummary), plants: plantSummary, sites: SITES, t: Date.now() });
   store.on('report', r => broadcast('report', r));
 
+  const step = dt => { const s = store.clock.scale; fleet.tick(dt, s); plants.tick(dt, s); plantSummary = plants.summary(); };
   let n = 0, last = Date.now();
   const timer = setInterval(() => {
     const now = Date.now(), dt = Math.min((now - last) / 1000, 5); last = now;
-    fleet.tick(dt); plants.tick(dt); plantSummary = plants.summary(); n++;
+    step(dt); n++;
     broadcast('live', live());
     if (n % 3 === 0) broadcast('fills', store.fills());
   }, CONFIG.tickMs);
@@ -43,12 +46,17 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), persist = true } 
   async function api(req, res, url) {
     const m = req.method, p = url.pathname;
     if (m === 'GET' && p === '/api/bins') return json(res, 200, binRows.map(([id, lat, lon, k], i) => [id, lat, lon, k, Math.round(store.bins[i].fill * 100)]));
-    if (m === 'GET' && p === '/api/state') return json(res, 200, { ...live(), reports: store.reports.map(publicReport), fills: store.fills(), config: { moveX: CONFIG.moveX, fillX: CONFIG.fillX, plantX: CONFIG.plantX } });
+    if (m === 'GET' && p === '/api/state') return json(res, 200, { ...live(), reports: store.reports.map(publicReport), fills: store.fills(), scale: store.clock.scale });
     if (m === 'GET' && p === '/api/stream') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       res.write('retry: 2000\n\n'); clients.add(res);
       send(res, 'live', live()); send(res, 'fills', store.fills());
       req.on('close', () => clients.delete(res)); return;
+    }
+    if (m === 'POST' && p === '/api/speed') {                // demo speed multiplier (1 = real time)
+      const b = await readBody(req, 1000), s = Number(b.scale);
+      if (!(s >= 1 && s <= 20)) return json(res, 400, { error: 'scale_1_to_20' });
+      store.clock.scale = s; return json(res, 200, { scale: s });
     }
     if (m === 'POST' && p === '/api/gps') {                 // custom GPS unit endpoint (single message or an array)
       const body = await readBody(req, 100_000), list = Array.isArray(body) ? body : [body];
@@ -82,6 +90,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), persist = true } 
       if (!truck) return json(res, 409, { error: 'no_truck_available' });
       return json(res, 200, store.assignReport(r.id, truck.id) ?? { error: 'cannot_assign' });
     }
+    if (m === 'GET' && (mm = /^\/api\/trucks\/([\w-]+)\/route$/.exec(p))) return json(res, 200, fleet.routeOf(mm[1]).map(([a, b]) => [+a.toFixed(5), +b.toFixed(5)]));
     if (m === 'POST' && (mm = /^\/api\/trucks\/([\w-]+)\/breakdown$/.exec(p))) return json(res, fleet.breakdown(mm[1]) ? 200 : 404, { ok: fleet.truck(mm[1])?.state === 'breakdown' });
     return json(res, 404, { error: 'not_found' });
   }
@@ -105,7 +114,7 @@ export function createApp({ dataDir = path.join(ROOT, 'data'), persist = true } 
     } catch (e) { json(res, e.code === 413 || e.code === 400 ? e.code : 500, { error: e.message }); }
   });
   server.on('close', () => { clearInterval(timer); clients.forEach(c => c.end()); });
-  return { server, store, fleet, plants, tick: dt => { fleet.tick(dt); plants.tick(dt); plantSummary = plants.summary(); } };
+  return { server, store, fleet, plants, tick: dt => step(dt), graph };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

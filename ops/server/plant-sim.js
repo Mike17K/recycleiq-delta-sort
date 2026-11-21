@@ -10,8 +10,9 @@ export class PlantSim {
   constructor(sites, { seed = 1 } = {}) {
     this.plants = sites.filter(s => s.kind === 'sorting').map(site => ({ site, plant: Plant.fromScene(getScene(site.scene), { seed: seed + site.id.charCodeAt(1) }) }));
   }
-  tick(dtReal) {
-    const steps = Math.round(dtReal * CONFIG.plantX / DT);
+  tick(dtReal, scale = 1) {
+    this._acc = (this._acc ?? 0) + dtReal * scale * CONFIG.plantPerScale / DT;
+    const steps = Math.floor(this._acc); this._acc -= steps;
     for (const { plant } of this.plants) for (let i = 0; i < steps; i++) plant.step();
   }
   /** Per plant: kg per material, residue, outbound by destination, rates. Purity is 100% by construction (types are given). */

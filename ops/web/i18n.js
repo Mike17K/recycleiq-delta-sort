@@ -1,7 +1,7 @@
 /** Tiny EL/EN dictionary shared by the dashboard and the citizen portal. */
 export const DICT = {
   el: {
-    title: 'RecycleIQ Ops', sub: 'Δήμος Αθηναίων · demo', demo: 'Demo', live: 'ζωντανά',
+    title: 'RecycleIQ Ops', sub: 'Δήμος Αθηναίων · demo', demo: 'Demo', speed: 'Ταχύτητα', live: 'ζωντανά',
     k_rate: 'Ανακύκλωση (εκτίμηση)', k_share: 'Ξεχωριστή συλλογή', k_recovery: 'Ανάκτηση διαλογής', k_kgh: 'kg/ώρα διαλογής',
     k_resp: 'Χρόνος ανταπόκρισης', k_kmt: 'km ανά τόνο', k_avail: 'Διαθεσιμότητα στόλου', k_full: 'Κάδοι > 80%', k_open: 'Ανοιχτές αναφορές',
     min: 'λ (προσομ.)', tab_reports: 'Αναφορές', tab_fleet: 'Στόλος', tab_plants: 'Διαλογή',
@@ -21,7 +21,7 @@ export const DICT = {
     d4: 'Το όχημα φτάνει και συλλέγει', d5: 'Βλάβη οχήματος: οι αναφορές του ξανανατίθενται', d6: 'Ροές διαλογής: υλικά και προορισμοί', d7: 'KPI ανακύκλωσης και αποδοτικότητας σε πραγματικό χρόνο',
   },
   en: {
-    title: 'RecycleIQ Ops', sub: 'City of Athens · demo', demo: 'Demo', live: 'live',
+    title: 'RecycleIQ Ops', sub: 'City of Athens · demo', demo: 'Demo', speed: 'Speed', live: 'live',
     k_rate: 'Recycling (estimate)', k_share: 'Separate collection', k_recovery: 'Sorting recovery', k_kgh: 'sorted kg/hour',
     k_resp: 'Response time', k_kmt: 'km per tonne', k_avail: 'Fleet availability', k_full: 'Bins > 80%', k_open: 'Open reports',
     min: 'min (sim)', tab_reports: 'Reports', tab_fleet: 'Fleet', tab_plants: 'Sorting',

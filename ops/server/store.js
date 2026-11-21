@@ -11,6 +11,7 @@ export class Store extends EventEmitter {
     const rng = mulberry32(seed);
     this.sites = sites;
     this.bins = binRows.map(([id, lat, lon, kind]) => ({ id, lat, lon, kind, fill: 0.05 + rng() * 0.6, rate: 0.5 + rng(), lastReportAt: null }));
+    this.clock = { scale: 1, simT: 0 };            // simulated seconds elapsed, and the speed multiplier chosen on the dashboard
     this.trucks = new Map();
     this.reports = [];
     this.seq = 0;
@@ -28,6 +29,7 @@ export class Store extends EventEmitter {
     Object.assign(t, { lat: m.lat, lon: m.lon, speed: m.speed ?? 0, heading: m.heading ?? 0, ts: m.ts ?? Date.now() });
     if (m.status) t.status = m.status;
     if (Number.isFinite(m.loadKg)) t.loadKg = m.loadKg;
+    if (Number.isFinite(m.rid)) t.rid = m.rid;
     this.trucks.set(t.id, t);
     return true;
   }
@@ -42,7 +44,7 @@ export class Store extends EventEmitter {
     const snap = nearest({ lat, lon }, this.bins);
     const bin = snap && snap.dist <= CONFIG.reportSnapMeters ? snap.item : null;
     const r = { id: `R${String(++this.seq).padStart(4, '0')}`, lat, lon, binId: bin?.id ?? null, candidate: !bin, photo, note: String(note).slice(0, 300),
-      status: 'new', createdAt: Date.now(), assignedAt: null, assignedTruck: null, collectedAt: null };
+      status: 'new', createdAt: Date.now(), createdSim: this.clock.simT, assignedAt: null, assignedTruck: null, collectedAt: null };
     if (bin) { bin.fill = Math.max(bin.fill, 0.95); bin.lastReportAt = r.createdAt; }
     this.reports.push(r); this._save(); this.emit('report', r);
     return r;
@@ -60,7 +62,7 @@ export class Store extends EventEmitter {
   completeReport(id) {
     const r = this.getReport(id); if (!r || r.status === 'collected') return null;
     r.status = 'collected'; r.collectedAt = Date.now();
-    this.counters.reportsCollected++; this.counters.responseSecSum += (r.collectedAt - r.createdAt) / 1000;
+    this.counters.reportsCollected++; this.counters.responseSecSum += this.clock.simT - (r.createdSim ?? this.clock.simT);
     this.emit('report', r); this._save(); return r;
   }
 
@@ -77,7 +79,7 @@ export class Store extends EventEmitter {
       collectedKg: Math.round(collected), collectedRecyclingKg: Math.round(c.collectedKg.recycling),
       streamShare, recovery, recycledRate: streamShare !== null && recovery !== null ? streamShare * recovery : null,
       sortedKgPerHour: plants.reduce((s, p) => s + p.kgPerHour, 0),
-      avgResponseSimMin: c.reportsCollected ? c.responseSecSum / c.reportsCollected * CONFIG.moveX / 60 : null,
+      avgResponseSimMin: c.reportsCollected ? c.responseSecSum / c.reportsCollected / 60 : null,
       kmPerTonne: collected ? c.km / (collected / 1000) : null,
       fleetAvailability: trucks.length ? trucks.filter(t => t.status !== 'breakdown').length / trucks.length : null,
       binsOver80: this.bins.filter(b => b.fill >= 0.8).length, bins: this.bins.length,
@@ -86,7 +88,7 @@ export class Store extends EventEmitter {
   }
   publicTrucks() {
     return [...this.trucks.values()].map(t => ({ id: t.id, plate: t.plate, type: t.type, lat: +t.lat.toFixed(6), lon: +t.lon.toFixed(6),
-      speed: +(t.speed ?? 0).toFixed(1), heading: Math.round(t.heading ?? 0), status: t.status, loadKg: Math.round(t.loadKg), capacityKg: t.capacityKg, ts: t.ts }));
+      speed: +(t.speed ?? 0).toFixed(1), heading: Math.round(t.heading ?? 0), status: t.status, loadKg: Math.round(t.loadKg), capacityKg: t.capacityKg, rid: t.rid ?? 0, ts: t.ts }));
   }
   fills() { return this.bins.map(b => Math.round(b.fill * 100)); }
 

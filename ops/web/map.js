@@ -11,6 +11,7 @@ export function createMap(el, { onTruck, onReport } = {}) {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors (ODbL)' }).addTo(map);
   const canvas = L.canvas({ padding: 0.3 });
   let binMarkers = [], truckMarkers = new Map(), reportMarkers = new Map(), siteMarkers = [];
+  const routeLines = new Map();     // truck id -> { rid, line }
 
   function setBins(rows) {          // rows: [id, lat, lon, kind, fill%]
     binMarkers.forEach(m => m.remove());
@@ -37,6 +38,19 @@ export function createMap(el, { onTruck, onReport } = {}) {
       m.bindTooltip(`${tr.id} · ${tr.loadKg}/${tr.capacityKg} kg`, { direction: 'top', offset: [0, -10] });
     }
   }
+  /** Draw each truck's current road route; refetched only when the truck's route id changes. */
+  function setRoutes(trucks) {
+    for (const tr of trucks) {
+      const cur = routeLines.get(tr.id);
+      if (!tr.rid) { if (cur) { cur.line?.remove(); routeLines.delete(tr.id); } continue; }
+      if (cur?.rid === tr.rid) continue;
+      cur?.line?.remove(); const entry = { rid: tr.rid, line: null }; routeLines.set(tr.id, entry);
+      fetch(`/api/trucks/${tr.id}/route`).then(r => r.json()).then(pts => {
+        if (routeLines.get(tr.id) !== entry || !pts.length) return;
+        entry.line = L.polyline(pts, { color: tr.type === 'recycling' ? '#2ecc71' : '#4aa3f4', weight: 5, opacity: 0.8, lineCap: 'round', interactive: false }).addTo(map);
+      }).catch(() => {});
+    }
+  }
   function setReports(reports) {
     const live = reports.filter(r => r.status === 'new' || r.status === 'assigned'), ids = new Set(live.map(r => r.id));
     for (const [id, m] of reportMarkers) if (!ids.has(id)) { m.remove(); reportMarkers.delete(id); }
@@ -50,5 +64,5 @@ export function createMap(el, { onTruck, onReport } = {}) {
     siteMarkers.forEach(m => m.remove());
     siteMarkers = sites.map(s => L.marker([s.lat, s.lon], { icon: L.divIcon({ className: '', html: `<div class="site" style="background:${s.kind === 'sorting' ? '#2ecc71' : '#8a7560'}">${s.kind === 'sorting' ? 'S' : 'T'}</div>`, iconSize: [0, 0] }) }).addTo(map).bindTooltip(s.name[lang]));
   }
-  return { map, setBins, setFills, setTrucks, setReports, setSites, truckMarker: id => truckMarkers.get(id), flyTo: (ll, z = 16) => map.flyTo(ll, z, { duration: 1.2 }) };
+  return { map, setBins, setFills, setTrucks, setRoutes, setReports, setSites, truckMarker: id => truckMarkers.get(id), flyTo: (ll, z = 16) => map.flyTo(ll, z, { duration: 1.2 }) };
 }

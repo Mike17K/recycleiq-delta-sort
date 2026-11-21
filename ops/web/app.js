@@ -36,7 +36,8 @@ function applyLive(d) {
   Object.assign(state, { trucks: d.trucks, kpi: d.kpi, plants: d.plants, sites: d.sites });
   if (!view.sitesSet) { view.setSites(d.sites, getLang()); view.sitesSet = true; }
   // keep scroll position in panes stable: only the visible pane is re-rendered
-  renderKpis($('#kpis'), d.kpi); view.setTrucks(d.trucks);
+  renderKpis($('#kpis'), d.kpi); view.setTrucks(d.trucks); view.setRoutes(d.trucks);
+  const sp = $('#speed'); if (document.activeElement !== sp && sp.value !== String(d.scale)) sp.value = String(d.scale);
   if ($('#pane-fleet').classList.contains('on')) renderFleet($('#pane-fleet'), d.trucks, handlers);
   if ($('#pane-plants').classList.contains('on')) renderPlants($('#pane-plants'), d.plants);
 }
@@ -54,6 +55,7 @@ async function boot() {
   });
 }
 $('#lang').onclick = () => { setLang(getLang() === 'el' ? 'en' : 'el'); $('#lang').textContent = getLang() === 'el' ? 'EN' : 'EL'; applyI18n(); $('#sub').textContent = t('sub'); view.setSites(state.sites, getLang()); paint(); };
+$('#speed').onchange = e => post('/api/speed', { scale: Number(e.target.value) });
 $('#demo').onclick = () => runDemo({ view, state, post, selectTab, caption: txt => { const c = $('#caption'); c.style.display = txt ? 'block' : 'none'; c.textContent = txt ?? ''; } });
 $('#lang').textContent = getLang() === 'el' ? 'EN' : 'EL';
 applyI18n(); $('#sub').textContent = t('sub');

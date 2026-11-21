@@ -2,12 +2,11 @@
 export const CONFIG = {
   port: Number(process.env.PORT) || 8780,
   tickMs: 1000,                 // server tick (also the GPS ping period of every truck)
-  moveX: 8,                     // truck movement speed-up vs real time (demo)
-  fillX: 12,                    // bin fill speed-up vs real time (1 real second = 12 simulated seconds)
-  plantX: 10,                   // sorting-plant simulation speed-up
-  truckSpeed: 7,                // m/s on the road (about 25 km/h average in the centre)
-  collectSeconds: 25,           // simulated dwell per bin
-  unloadSeconds: 90,            // simulated dwell at a plant
+  // Real time by default: trucks drive at road-class speeds (about 12-30 km/h). `scale` multiplies all clocks (the dashboard offers 1x/2x/5x/10x).
+  fillPerScale: 1.5,            // bin filling speed-up at scale 1 (so a 15 kg litter bin fills in about 6 real hours)
+  plantPerScale: 2,             // sorting-plant simulation speed at scale 1
+  collectSeconds: 30,           // dwell per bin
+  unloadSeconds: 120,           // dwell at a plant
   reportSnapMeters: 40,         // a citizen report within this distance of a known bin is attached to it
   rateLimit: { perMinute: 5 },  // public portal, per IP
   maxPhotoBytes: 1_500_000,
