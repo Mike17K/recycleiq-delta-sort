@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/",
+    "ops": "node ops/server/index.js",
     "video": "node tools/capture-video/capture.js"
   },
   "devDependencies": {

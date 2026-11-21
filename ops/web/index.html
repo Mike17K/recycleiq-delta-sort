@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecycleIQ Ops</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<header>
+  <h1><b>RecycleIQ</b> Ops <span id="sub" class="mute" style="font-weight:400"></span></h1>
+  <div class="hdr"><span><span class="dot" id="conn"></span> <span data-i="live"></span></span>
+    <button id="demo" class="primary" data-i="demo"></button><a href="/report" target="_blank"><button>/report</button></a><button id="lang">EN</button></div>
+</header>
+<section class="kpis" id="kpis"></section>
+<main>
+  <div class="mapwrap"><div id="map" style="height:100%"></div><div id="caption"></div>
+    <div class="legend"><span data-i="legend_bins"></span>: <i style="background:#2ecc71"></i><span data-i="ok"></span><i style="background:#f4b942"></i><span data-i="mid"></span><i style="background:#e4572e"></i><span data-i="hi"></span></div></div>
+  <aside class="side">
+    <div class="tabs"><button data-tab="reports" class="on" data-i="tab_reports"></button><button data-tab="fleet" data-i="tab_fleet"></button><button data-tab="plants" data-i="tab_plants"></button></div>
+    <div class="pane on" id="pane-reports"></div><div class="pane" id="pane-fleet"></div><div class="pane" id="pane-plants"></div>
+    <div class="mute" style="padding:6px 10px;font-size:11px;border-top:1px solid var(--line)" data-i="sim_note"></div>
+  </aside>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script type="module" src="app.js"></script>
+</body></html>

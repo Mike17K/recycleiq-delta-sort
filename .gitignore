@@ -1,3 +1,10 @@
 node_modules/
 videos/
 .claude/settings.local.json
+tools/athens-tiles/.venv/
+tools/athens-tiles/athens_orthophotos/
+tools/athens-bins/athens_bins/
+tools/athens-bins/*.pbf
+tools/athens-bins/.venv/
+ops/data/photos/
+ops/data/state.json

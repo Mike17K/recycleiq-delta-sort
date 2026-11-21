@@ -43,3 +43,18 @@ Flexibility points: dispatch policy (`dispatcher.js`), service steps (`service-p
 
 ## Add a material class
 Add it to `src/core/materials.js` (colour + EN/EL label) and, for a distinct 3D shape, to `SHAPES` in `src/view/three/items.js` (falls back to a generic shape).
+
+## RecycleIQ Ops (municipal operations demo)
+
+A separate web app in `ops/`: live map of 1,943 OpenStreetMap bins, a garbage-truck fleet reporting GPS, a public citizen report portal, sorting-plant flows and live KPIs. Plan: [OPS_MVP_PLAN.md](OPS_MVP_PLAN.md).
+
+```bash
+npm run ops          # http://localhost:8780  (dashboard)  and  /report  (citizen portal)
+node --test tests/   # includes tests/ops.test.js
+```
+
+- `ops/server/`: `store.js` (state, reports, KPIs), `fleet-sim.js` (trucks), `plant-sim.js` (runs the headless sorting simulation from `src/core`), `index.js` (REST + Server-Sent Events + static files).
+- `ops/web/`: dashboard (`index.html`, `app.js`, `map.js`, `panels.js`, `sankey.js`, `demo.js`) and portal (`report.html`, `report.js`).
+- Real GPS units: `POST /api/gps` with `{truckId, lat, lon, speed, heading, ts, status?, loadKg?}` (one message or an array). The simulator uses the same path.
+- Time is sped up for the demo (`ops/server/config.js`: trucks x8, bin fill x12, sorters x10). Everything is simulated; bins come from OpenStreetMap (ODbL).
+- Phone geolocation needs HTTPS (or localhost) on a real device; otherwise the portal falls back to tapping the map.

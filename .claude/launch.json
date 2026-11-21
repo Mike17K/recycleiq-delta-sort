@@ -1,6 +1,35 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "static", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8765"], "port": 8765 }
+    {
+      "name": "static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8765"
+      ],
+      "port": 8765
+    },
+    {
+      "name": "athens-map",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8766",
+        "--directory",
+        "tools/athens-bins"
+      ],
+      "port": 8766
+    },
+    {
+      "name": "ops",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "ops/server/index.js"
+      ],
+      "port": 8780
+    }
   ]
 }

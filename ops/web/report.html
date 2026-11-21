@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecycleIQ · Αναφορά</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="style.css">
+<style>body{padding:0}.wrap{max-width:520px;margin:0 auto;padding:12px 16px 32px}.big{width:100%;padding:16px;font-size:18px;margin:8px 0}
+#preview{width:100%;max-height:300px;object-fit:cover;border-radius:10px;display:none;margin-top:8px}#pmap{height:180px;border-radius:10px;display:none;margin-top:8px;border:1px solid var(--line)}
+textarea{width:100%;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}.msg{margin:10px 0;padding:10px;border-radius:8px;background:var(--card)}.msg.err{color:var(--bad)}</style>
+</head><body>
+<header><h1><b>RecycleIQ</b> <span data-i="r_title"></span></h1><div class="hdr"><button id="lang">EN</button></div></header>
+<div class="wrap" id="form">
+  <h3 data-i="r_photo"></h3>
+  <input id="file" type="file" accept="image/*" capture="environment" hidden>
+  <button class="big primary" id="take" data-i="r_take"></button>
+  <img id="preview" alt="">
+  <h3 data-i="r_loc"></h3>
+  <div class="msg" id="locmsg"></div><div id="pmap"></div>
+  <h3 data-i="r_note"></h3><textarea id="note" rows="2" maxlength="300"></textarea>
+  <button class="big primary" id="send" data-i="r_send"></button>
+  <div class="msg err" id="err" style="display:none"></div>
+  <p class="mute" style="font-size:12px" data-i="r_privacy"></p>
+</div>
+<div class="wrap" id="done" style="display:none"><div class="msg" id="doneMsg"></div><div class="msg"><span data-i="r_status"></span>: <b id="status"></b> <span id="rid" class="mute"></span></div><button class="big" id="again" data-i="r_again"></button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script type="module" src="report.js"></script>
+</body></html>

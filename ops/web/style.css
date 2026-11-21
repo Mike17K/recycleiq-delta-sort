@@ -1,0 +1,40 @@
+:root{--bg:#0b1f17;--card:#0f2a1d;--card2:#123424;--line:#1f4a33;--text:#e8f5ee;--mute:#8fb5a0;--accent:#2ecc71;--warn:#f4b942;--bad:#e4572e;--info:#4aa3f4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:17px;font-weight:600} header h1 b{color:var(--accent)}
+.hdr{margin-left:auto;display:flex;gap:8px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--bad);display:inline-block} .dot.on{background:var(--accent)}
+button,select{background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 12px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)} button.primary{background:var(--accent);color:#06210f;border-color:var(--accent);font-weight:600}
+button.small{padding:2px 8px;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding:8px 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-size:20px;font-variant-numeric:tabular-nums} .kpi span{color:var(--mute);font-size:12px}
+main{display:grid;grid-template-columns:1fr 420px;gap:8px;padding:0 16px 16px;height:calc(100% - 148px);min-height:420px}
+#map{border-radius:10px;border:1px solid var(--line);min-height:320px}
+.side{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line)} .tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:10px 4px;color:var(--mute)}
+.tabs button.on{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
+.pane{display:none;overflow:auto;padding:10px;flex:1} .pane.on{display:block}
+.row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row .grow{flex:1;min-width:0} .row small,.mute{color:var(--mute)}
+.tag{padding:1px 7px;border-radius:10px;font-size:11px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.tag.new{color:var(--warn);border-color:var(--warn)} .tag.assigned{color:var(--info);border-color:var(--info)} .tag.collected{color:var(--accent);border-color:var(--accent)}
+.tag.breakdown{color:var(--bad);border-color:var(--bad)} .tag.rejected{color:var(--mute)}
+.thumb{width:54px;height:40px;border-radius:5px;object-fit:cover;background:var(--card2)}
+.bar{height:6px;border-radius:3px;background:var(--card2);overflow:hidden;margin-top:3px} .bar i{display:block;height:100%;background:var(--accent)}
+.bar.hi i{background:var(--warn)} .bar.full i{background:var(--bad)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums} td,th{padding:3px 4px;text-align:left;border-bottom:1px solid var(--line)} td.n,th.n{text-align:right}
+h3{margin:12px 0 6px;font-size:13px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.04em} h3:first-child{margin-top:0}
+#caption{position:absolute;left:16px;bottom:34px;z-index:1000;background:rgba(8,24,16,.88);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font-size:18px;max-width:60%;display:none}
+.mapwrap{position:relative;min-height:0}
+.legend{position:absolute;right:10px;bottom:24px;z-index:900;background:rgba(8,24,16,.88);border:1px solid var(--line);padding:6px 10px;border-radius:8px;font-size:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 8px;vertical-align:middle} .legend i:first-child{margin-left:0}
+.truck{width:34px;height:34px;margin:-17px 0 0 -17px} .truck svg{width:34px;height:34px;transition:transform .9s linear;filter:drop-shadow(0 1px 2px #000)}
+.pulse{width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:var(--warn);border:2px solid #fff;animation:p 1.4s infinite} .pulse.assigned{background:var(--info)}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(244,185,66,.7)}100%{box-shadow:0 0 0 18px rgba(244,185,66,0)}}
+.site{width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:4px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.leaflet-container{background:#0b1f17;font:inherit} .leaflet-popup-content{color:#10281c;font-size:13px}
+svg text{fill:var(--text);font-size:11px}
+@media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}.side{min-height:420px}}
