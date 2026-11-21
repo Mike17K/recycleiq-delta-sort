@@ -1,0 +1,14 @@
+{
+  "name": "recycleiq-delta-sort",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "video": "node tools/capture-video/capture.js"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^22.15.0",
+    "three": "^0.160.1"
+  }
+}

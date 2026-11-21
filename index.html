@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecycleIQ Delta Sort</title>
+<link rel="stylesheet" href="src/ui/style.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script>
+</head>
+<body>
+<header>
+  <h1><b>RecycleIQ</b> Delta Sort <span id="sub" style="color:var(--mute);font-weight:400"></span></h1>
+  <div class="hdr"><select id="scene" aria-label="scene"></select><button id="lang">EN</button></div>
+</header>
+<div class="note" id="honesty"></div>
+<main>
+  <section class="stage">
+    <canvas id="view2d"></canvas>
+    <canvas id="view3d"></canvas>
+    <div id="caption"></div>
+    <button id="toggle3d" style="position:absolute;right:12px;top:12px"></button>
+  </section>
+  <section>
+    <canvas id="gantt"></canvas>
+    <div class="legend" id="legend"></div>
+  </section>
+  <section class="panels">
+    <div class="card" id="controls">
+      <h2 data-i="controls"></h2>
+      <div class="row">
+        <button id="play" class="primary"></button>
+        <label style="min-width:auto" data-i="speed"></label>
+        <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option><option>4</option></select>
+        <button id="demo"></button>
+      </div>
+      <div id="plant-controls"></div>
+      <div class="row"><label data-i="seed"></label><input type="number" id="seed"><button id="reset"></button>
+        <label style="min-width:auto"><input type="checkbox" id="labels"> <span data-i="labels"></span></label></div>
+      <div class="row"><button id="export"></button><button id="importBtn"></button><input type="file" id="importFile" accept=".json" hidden></div>
+      <div id="verify"></div>
+    </div>
+    <div class="card hud" id="stats">
+      <h2 data-i="stats"></h2>
+      <div class="kpi">
+        <div><b id="kMin">0</b><span data-i="perMin"></span></div>
+        <div><b id="kPicked">0</b><span data-i="picked"></span></div>
+        <div><b id="kMiss">0</b><span data-i="misses"></span></div>
+        <div><b id="kRate">0%</b><span data-i="missRate"></span></div>
+        <div id="kTripsBox"><b id="kTrips">0</b><span data-i="trips"></span></div>
+      </div>
+      <table id="util"></table>
+      <table id="logi" style="margin-top:8px"></table>
+      <table id="bins" style="margin-top:8px"></table>
+    </div>
+    <div class="card"><h2 data-i="log"></h2><div id="log"></div></div>
+  </section>
+</main>
+<script type="module" src="src/ui/app.js"></script>
+</body>
+</html>
